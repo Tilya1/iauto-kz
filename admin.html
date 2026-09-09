@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заявки — iAuto.kz</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/doc.css">
+  <style>
+    .admin-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .admin-bar .input { max-width: 320px; }
+    .lead-row td:first-child { white-space: nowrap; color: var(--muted); }
+    .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: var(--green-light); color: var(--green); }
+    .tag--seller { background: #fff4e0; color: #b46a00; }
+    .empty { color: var(--muted); padding: 20px 0; }
+  </style>
+</head>
+<body>
+<header class="header">
+  <div class="wrap"><div class="header__inner">
+    <a href="index.html" class="logo"><span class="logo__mark"><img src="assets/img/favicon.svg" alt="" width="28" height="28"></span><span class="logo__text">iAuto</span></a>
+    <a href="index.html" class="btn btn--outline-sm">На сайт</a>
+  </div></div>
+</header>
+<main class="doc" style="max-width:1100px">
+  <h1>Заявки с сайта</h1>
+  <p class="doc__date">Данные из server/data/leads.json. Токен задаётся в server/.env (ADMIN_TOKEN).</p>
+  <div class="admin-bar">
+    <input class="input" type="password" id="token" placeholder="ADMIN_TOKEN" autocomplete="off">
+    <button class="btn btn--primary" id="load">Показать заявки</button>
+    <button class="btn btn--outline" id="csv" hidden>Скачать CSV</button>
+  </div>
+  <div id="out" class="empty">Введите токен и нажмите «Показать заявки».</div>
+</main>
+<script>
+(function () {
+  var leads = [];
+  var out = document.getElementById('out');
+  var tokenEl = document.getElementById('token');
+  try { tokenEl.value = sessionStorage.getItem('iauto_admin_token') || ''; } catch (e) {}
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmt(iso) { var d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('ru-RU'); }
+
+  function render() {
+    if (!leads.length) { out.className = 'empty'; out.textContent = 'Заявок пока нет.'; return; }
+    var rows = leads.map(function (l) {
+      return '<tr class="lead-row"><td>' + esc(fmt(l.createdAt)) + '</td>' +
+        '<td><span class="tag' + (l.type === 'seller' ? ' tag--seller' : '') + '">' + (l.type === 'seller' ? 'продавец' : 'клиент') + '</span><br><small>' + esc(l.source) + '</small></td>' +
+        '<td><strong>' + esc(l.name) + '</strong><br><a href="tel:' + esc(l.phone.replace(/\D/g, '')) + '">' + esc(l.phone) + '</a></td>' +
+        '<td>' + esc(l.company || l.car) + (l.vin ? '<br><small>VIN: ' + esc(l.vin) + '</small>' : '') + '</td>' +
+        '<td>' + esc(l.message) + '</td></tr>';
+    }).join('');
+    out.className = 'table-wrap';
+    out.innerHTML = '<table><thead><tr><th>Дата</th><th>Тип</th><th>Контакт</th><th>Авто / магазин</th><th>Описание</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    document.getElementById('csv').hidden = false;
+  }
+
+  document.getElementById('load').addEventListener('click', function () {
+    var token = tokenEl.value.trim();
+    try { sessionStorage.setItem('iauto_admin_token', token); } catch (e) {}
+    out.className = 'empty'; out.textContent = 'Загрузка…';
+    fetch('/api/leads', { headers: { 'x-admin-token': token } })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
+      .then(function (j) { leads = j.leads || []; render(); })
+      .catch(function (e) { out.className = 'empty'; out.textContent = 'Ошибка: ' + e.message; });
+  });
+
+  document.getElementById('csv').addEventListener('click', function () {
+    var head = ['Дата', 'Тип', 'Источник', 'Имя', 'Телефон', 'Авто', 'Магазин', 'VIN', 'Описание'];
+    var lines = [head.join(';')].concat(leads.map(function (l) {
+      return [fmt(l.createdAt), l.type, l.source, l.name, l.phone, l.car, l.company, l.vin, l.message]
+        .map(function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }).join(';');
+    }));
+    var blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'leads.csv';
+    a.click();
+  });
+})();
+</script>
+</body>
+</html>

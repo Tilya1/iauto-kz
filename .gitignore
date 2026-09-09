@@ -1,0 +1,6 @@
+.vercel/
+.env.local
+.env
+node_modules/
+server/data/
+server/.env

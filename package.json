@@ -1,0 +1,9 @@
+{
+  "name": "iauto-kz-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "iAuto.kz — сайт подбора автозапчастей в Алматы (статика + Vercel Functions)",
+  "engines": {
+    "node": ">=18"
+  }
+}

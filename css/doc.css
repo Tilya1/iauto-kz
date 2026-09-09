@@ -1,0 +1,17 @@
+/* Страницы документов (политика, соглашение, оферта) и админка */
+.doc { max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
+.doc h1 { font-size: 32px; line-height: 40px; margin-bottom: 8px; }
+.doc .doc__date { font-size: 13px; color: var(--muted); margin-bottom: 30px; }
+.doc h2 { font-size: 20px; line-height: 28px; margin: 30px 0 10px; }
+.doc p, .doc li { font-size: 15px; line-height: 24px; margin-bottom: 10px; }
+.doc ul, .doc ol { padding-left: 22px; margin-bottom: 12px; }
+.doc ul { list-style: disc; }
+.doc ol { list-style: decimal; }
+.doc a { color: var(--green); }
+.doc a:hover { text-decoration: underline; }
+.doc .doc__note { background: var(--mint); border-radius: 12px; padding: 14px 18px; font-size: 13px; line-height: 20px; color: var(--muted); margin-bottom: 24px; }
+.doc .doc__back { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 26px; font-size: 14px; color: var(--green); }
+.doc table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.doc th, .doc td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--gray); vertical-align: top; }
+.doc th { color: var(--muted); font-weight: 500; }
+.doc .table-wrap { overflow-x: auto; }
